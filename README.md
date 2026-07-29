@@ -55,3 +55,21 @@ click fires a `share` event with a `method` param (`native_share`, `copy_link`, 
 
 Any Next.js host works (e.g. Vercel). Set `SLACK_WEBHOOK_URL` and `NEXT_PUBLIC_GA_MEASUREMENT_ID` as environment
 variables on the host before deploying.
+
+## Docker
+
+The `Dockerfile` is a multi-stage build producing a minimal production image via Next.js's `output: "standalone"`
+mode (see `next.config.ts`).
+
+```bash
+# NEXT_PUBLIC_GA_MEASUREMENT_ID is inlined into the client bundle at build time (it's public by
+# design), so pass it as a build arg if you want GA enabled in the image. SLACK_WEBHOOK_URL is
+# read at runtime, so it's supplied with -e instead.
+docker build --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX -t vovos-house .
+
+docker run -p 3000:3000 \
+  -e SLACK_WEBHOOK_URL=https://hooks.slack.com/services/... \
+  vovos-house
+```
+
+Open [http://localhost:3000](http://localhost:3000).
