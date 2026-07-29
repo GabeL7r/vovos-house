@@ -10,7 +10,7 @@ const FAQS = [
   },
   {
     q: `What does "kid-ready" actually include?`,
-    a: "Every home is vetted for family safety and stocked with the essentials — crib or pack-n-play, high chair, gates and covers, and kid-friendly touches. You'll see exactly what each home offers before you book.",
+    a: "Every home is checked for family safety and stocked with the essentials: crib or pack-n-play, high chair, gates and covers, and kid-friendly touches. You'll see exactly what's there before you book.",
   },
   {
     q: "Does it cost anything to join the waitlist?",
@@ -18,11 +18,11 @@ const FAQS = [
   },
   {
     q: "Where will homes be available?",
-    a: "We're deciding our first locations now — and waitlist sign-ups help us choose. Tell us where you'd travel and it shapes where we launch.",
+    a: "We're deciding our first locations now, and waitlist sign-ups help us choose. Tell us where you'd travel and it shapes where we launch.",
   },
   {
     q: "Who's behind Vovo's House?",
-    a: "A small team of parents building the family-travel platform we always wanted. (Vovo means grandmother in Portuguese.)",
+    a: "A small team of parents building the family travel company we always wished we had. (Vovo means grandmother in Portuguese.)",
   },
 ];
 

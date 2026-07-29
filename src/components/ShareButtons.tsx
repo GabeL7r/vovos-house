@@ -34,7 +34,7 @@ export function ShareButtons({ url, text }: ShareButtonsProps) {
       await navigator.share({ title: "Vovo's House", text, url });
       gaEvent("share", { method: "native_share", content_type: "waitlist" });
     } catch {
-      // user cancelled the share sheet — no-op
+      // user cancelled the share sheet, no-op
     }
   }
 

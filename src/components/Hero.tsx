@@ -51,14 +51,14 @@ export function Hero() {
             textWrap: "pretty",
           }}
         >
-          Vovo&apos;s House is a new kind of rental for families with little ones — every home is kid-ready before you
-          arrive. Cribs made, gates up, corners softened. You just show up and exhale.
+          Vovo&apos;s House is a new kind of rental for families with little ones. Every home is kid-ready before you
+          arrive: cribs made, gates up, corners softened. You just show up and exhale.
         </p>
         <LinkButton href="#waitlist-form" variant="primary" size="lg">
           Join the waitlist
         </LinkButton>
         <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", margin: "14px 0 0" }}>
-          Be first to book when we open. No spam, no charge — just an early spot.
+          Be first to book when we open. No spam, no charge. Just an early spot.
         </p>
       </div>
       <div

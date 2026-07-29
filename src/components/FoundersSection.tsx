@@ -15,8 +15,7 @@ export function FoundersSection() {
           }}
         >
           We started Vovo&apos;s House after one too many trips spent babyproofing someone else&apos;s place instead
-          of enjoying the vacation. We&apos;re building the platform we wished existed — and we&apos;d love your help
-          shaping it.
+          of enjoying the vacation. We&apos;re building what we wished existed. We&apos;d love your help shaping it.
         </p>
       </div>
     </section>

@@ -12,7 +12,7 @@ export async function postWaitlistToSlack(submission: WaitlistSubmission) {
   }
 
   const { email, city, numKids, kidAges } = submission;
-  const agesText = numKids === 0 ? "—" : kidAges.map((age) => `${age}yo`).join(", ");
+  const agesText = numKids === 0 ? "None" : kidAges.map((age) => `${age}yo`).join(", ");
 
   const payload = {
     text: `New Vovo's House waitlist signup: ${email}`,

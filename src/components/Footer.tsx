@@ -13,7 +13,7 @@ export function Footer() {
         }}
       >
         <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "var(--text-xl)", color: "var(--color-primary)" }}>
-          Vovo&apos;s House — Stay like family.
+          Vovo&apos;s House · Stay like family.
         </span>
         <div style={{ display: "flex", gap: 24, fontSize: "var(--text-md)", color: "var(--text-secondary)" }}>
           <a href="#how-it-works">How it works</a>

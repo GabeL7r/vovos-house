@@ -7,7 +7,7 @@ const STEPS = [
   {
     n: 2,
     title: "Book a home that's truly ready.",
-    body: "Cribs, gates, high chairs, toys — vetted and confirmed, not guessed.",
+    body: "Cribs, gates, high chairs, toys: checked and confirmed, not guessed.",
   },
   {
     n: 3,

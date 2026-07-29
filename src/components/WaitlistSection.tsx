@@ -9,7 +9,7 @@ import { Stepper } from "./ui/Stepper";
 import { ShareButtons } from "./ShareButtons";
 import { gaEvent } from "@/lib/gtag";
 
-const SHARE_TEXT = "I just joined the waitlist for Vovo's House — kid-ready family rentals. The more of us who sign up, the sooner it opens!";
+const SHARE_TEXT = "I just joined the waitlist for Vovo's House (kid-ready family rentals). The more of us who sign up, the sooner it opens!";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_KIDS = 8;
@@ -130,7 +130,7 @@ export function WaitlistSection() {
           }}
         >
           We&apos;re opening to a small group of families first. Join the waitlist and you&apos;ll get early access
-          before we open to everyone — plus a say in the homes and features we build.
+          before we open to everyone, plus a say in the homes and features we build.
         </p>
         <form
           onSubmit={handleEmailSubmit}
