@@ -1,10 +1,11 @@
 # Vovo's House Landing Page
 
 Waitlist landing page for Vovo's House, built with Next.js (App Router). Visitors submit their email, then a follow-up
-modal collects the city they'd like us to launch in, how many kids they have, and each kid's age. Submissions are
-posted to a Slack channel via an Incoming Webhook, and a `sign_up` conversion event is sent to Google Analytics 4.
-After joining, visitors see one-tap share buttons to invite friends ("the more people who sign up, the faster we
-launch").
+modal collects the city they'd like us to launch in, how many kids they have, and each kid's age, followed by an
+optional Van Westendorp price sensitivity question (skippable) to gauge what families would pay per night.
+Submissions are posted to a Slack channel via an Incoming Webhook, and a `sign_up` conversion event is sent to
+Google Analytics 4. After joining, visitors see one-tap share buttons to invite friends ("the more people who sign
+up, the faster we launch").
 
 ## Getting started
 
@@ -24,7 +25,19 @@ Open [http://localhost:3000](http://localhost:3000).
 3. Copy the generated webhook URL into `SLACK_WEBHOOK_URL` in `.env.local` (and in your hosting provider's
    environment variables for production).
 
-Each waitlist submission posts a message with the email, requested city, number of kids, and their ages.
+Each waitlist submission posts a message with the email, requested city, number of kids, and their ages. If the
+visitor answered the price sensitivity question, the four price points are included too.
+
+## Price sensitivity (Van Westendorp)
+
+The pricing step in the waitlist modal asks four standard [Van Westendorp Price Sensitivity
+Meter](https://en.wikipedia.org/wiki/Van_Westendorp%27s_Price_Sensitivity_Meter) questions, reworded to fit the
+brand voice: too cheap (worried about safety), a bargain, getting expensive, and too expensive. It's the last step
+before signup completes and can be skipped entirely (a "Skip" button submits the waitlist entry without pricing
+data); if a visitor starts filling it in, they need to complete all four for the submission to include pricing, so
+the dataset stays usable for the standard Van Westendorp analysis. Answers are sent to Slack and, per-submission, as
+`price_too_cheap` / `price_bargain` / `price_getting_expensive` / `price_too_expensive` params on the GA4 `sign_up`
+event.
 
 ## Google Analytics setup
 

@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { postWaitlistToSlack } from "@/lib/slack";
+import { postWaitlistToSlack, type PriceSensitivity } from "@/lib/slack";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_KIDS = 8;
+const MAX_NIGHTLY_PRICE = 5000;
+
+const INVALID = Symbol("invalid");
+
+function isValidPrice(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 && value <= MAX_NIGHTLY_PRICE;
+}
+
+function parsePriceSensitivity(value: unknown): PriceSensitivity | null | typeof INVALID {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "object") return INVALID;
+
+  const { tooCheap, bargain, gettingExpensive, tooExpensive } = value as Record<string, unknown>;
+  if (![tooCheap, bargain, gettingExpensive, tooExpensive].every(isValidPrice)) return INVALID;
+
+  return {
+    tooCheap: tooCheap as number,
+    bargain: bargain as number,
+    gettingExpensive: gettingExpensive as number,
+    tooExpensive: tooExpensive as number,
+  };
+}
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -16,7 +38,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { email, city, numKids, kidAges } = body as Record<string, unknown>;
+  const { email, city, numKids, kidAges, priceSensitivity } = body as Record<string, unknown>;
 
   if (typeof email !== "string" || !EMAIL_RE.test(email)) {
     return NextResponse.json({ error: "A valid email is required" }, { status: 400 });
@@ -35,8 +57,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "kidAges must match numKids, each between 0 and 17" }, { status: 400 });
   }
 
+  const parsedPriceSensitivity = parsePriceSensitivity(priceSensitivity);
+  if (parsedPriceSensitivity === INVALID) {
+    return NextResponse.json(
+      { error: "priceSensitivity must be null or four positive numbers no greater than " + MAX_NIGHTLY_PRICE },
+      { status: 400 }
+    );
+  }
+
   try {
-    await postWaitlistToSlack({ email: email.trim(), city: city.trim(), numKids, kidAges });
+    await postWaitlistToSlack({
+      email: email.trim(),
+      city: city.trim(),
+      numKids,
+      kidAges,
+      priceSensitivity: parsedPriceSensitivity,
+    });
   } catch (err) {
     console.error("Failed to post waitlist submission to Slack", err);
     return NextResponse.json({ error: "Could not submit right now. Please try again shortly." }, { status: 502 });

@@ -18,7 +18,18 @@ const AGE_OPTIONS = Array.from({ length: 18 }, (_, age) => ({
   label: age === 0 ? "Under 1" : `${age} ${age === 1 ? "year" : "years"}`,
 }));
 
-type Step = "questions" | "success";
+type Step = "questions" | "pricing" | "success";
+
+const MODAL_TITLES: Record<Step, string> = {
+  questions: "Just a couple quick things",
+  pricing: "One more thing, totally optional",
+  success: "You're on the list. Welcome to the family.",
+};
+
+function parsePrice(raw: string): number | null {
+  const n = Number(raw);
+  return raw.trim() !== "" && Number.isFinite(n) && n > 0 ? n : null;
+}
 
 export function WaitlistSection() {
   const [email, setEmail] = useState("");
@@ -31,6 +42,12 @@ export function WaitlistSection() {
   const [numKids, setNumKids] = useState(0);
   const [kidAges, setKidAges] = useState<string[]>([]);
   const [agesError, setAgesError] = useState<string | null>(null);
+
+  const [priceTooCheap, setPriceTooCheap] = useState("");
+  const [priceBargain, setPriceBargain] = useState("");
+  const [priceGettingExpensive, setPriceGettingExpensive] = useState("");
+  const [priceTooExpensive, setPriceTooExpensive] = useState("");
+  const [priceError, setPriceError] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -63,7 +80,7 @@ export function WaitlistSection() {
     });
   }
 
-  async function handleFinalSubmit() {
+  function handleContinueToPricing() {
     if (!city.trim()) {
       setCityError("Tell us which city you'd like us to launch in.");
       return;
@@ -76,6 +93,15 @@ export function WaitlistSection() {
     }
     setAgesError(null);
 
+    setStep("pricing");
+  }
+
+  async function submitWaitlist(priceSensitivity: {
+    tooCheap: number;
+    bargain: number;
+    gettingExpensive: number;
+    tooExpensive: number;
+  } | null) {
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -87,19 +113,56 @@ export function WaitlistSection() {
           city: city.trim(),
           numKids,
           kidAges: kidAges.map(Number),
+          priceSensitivity,
         }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Something went wrong. Please try again.");
       }
-      gaEvent("sign_up", { method: "waitlist", city: city.trim(), num_kids: numKids });
+      gaEvent("sign_up", {
+        method: "waitlist",
+        city: city.trim(),
+        num_kids: numKids,
+        ...(priceSensitivity
+          ? {
+              price_too_cheap: priceSensitivity.tooCheap,
+              price_bargain: priceSensitivity.bargain,
+              price_getting_expensive: priceSensitivity.gettingExpensive,
+              price_too_expensive: priceSensitivity.tooExpensive,
+            }
+          : {}),
+      });
       setStep("success");
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function handleSkipPricing() {
+    setPriceError(null);
+    submitWaitlist(null);
+  }
+
+  function handleSubmitWithPricing() {
+    const tooCheap = parsePrice(priceTooCheap);
+    const bargain = parsePrice(priceBargain);
+    const gettingExpensive = parsePrice(priceGettingExpensive);
+    const tooExpensive = parsePrice(priceTooExpensive);
+
+    if (!tooCheap && !bargain && !gettingExpensive && !tooExpensive) {
+      submitWaitlist(null);
+      return;
+    }
+
+    if (!tooCheap || !bargain || !gettingExpensive || !tooExpensive) {
+      setPriceError("Fill in all four, or skip this step.");
+      return;
+    }
+    setPriceError(null);
+    submitWaitlist({ tooCheap, bargain, gettingExpensive, tooExpensive });
   }
 
   function closeModal() {
@@ -111,6 +174,11 @@ export function WaitlistSection() {
     setNumKids(0);
     setKidAges([]);
     setAgesError(null);
+    setPriceTooCheap("");
+    setPriceBargain("");
+    setPriceGettingExpensive("");
+    setPriceTooExpensive("");
+    setPriceError(null);
     setSubmitError(null);
   }
 
@@ -167,15 +235,24 @@ export function WaitlistSection() {
       <Modal
         open={modalOpen}
         onClose={closeModal}
-        title={step === "success" ? "You're on the list. Welcome to the family." : "Just two quick things"}
+        title={MODAL_TITLES[step]}
         footer={
           step === "success" ? (
             <Button variant="primary" onClick={closeModal}>
               Done
             </Button>
+          ) : step === "pricing" ? (
+            <>
+              <Button variant="outline" onClick={handleSkipPricing} disabled={submitting}>
+                Skip
+              </Button>
+              <Button variant="primary" onClick={handleSubmitWithPricing} loading={submitting}>
+                Join the waitlist
+              </Button>
+            </>
           ) : (
-            <Button variant="primary" onClick={handleFinalSubmit} loading={submitting}>
-              Join the waitlist
+            <Button variant="primary" onClick={handleContinueToPricing}>
+              Continue
             </Button>
           )
         }
@@ -200,6 +277,55 @@ export function WaitlistSection() {
               </p>
               <ShareButtons url={typeof window !== "undefined" ? window.location.origin : ""} text={SHARE_TEXT} />
             </div>
+          </div>
+        ) : step === "pricing" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20, textAlign: "left" }}>
+            <p style={{ margin: 0, fontSize: "var(--text-md)", color: "var(--text-secondary)", lineHeight: "var(--leading-normal)" }}>
+              This part&apos;s just for us. It helps us price fairly for families like yours, so answer as many as
+              you&apos;d like, per night.
+            </p>
+            <Input
+              label="At what nightly price would you start to worry we cut corners on safety?"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              placeholder="e.g. 60"
+              icon="dollar-sign"
+              value={priceTooCheap}
+              onChange={(e) => setPriceTooCheap(e.target.value)}
+            />
+            <Input
+              label="At what nightly price would this feel like a great find?"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              placeholder="e.g. 150"
+              icon="dollar-sign"
+              value={priceBargain}
+              onChange={(e) => setPriceBargain(e.target.value)}
+            />
+            <Input
+              label="At what nightly price would you pause and think it over?"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              placeholder="e.g. 280"
+              icon="dollar-sign"
+              value={priceGettingExpensive}
+              onChange={(e) => setPriceGettingExpensive(e.target.value)}
+            />
+            <Input
+              label="At what nightly price would this be off the table?"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              placeholder="e.g. 400"
+              icon="dollar-sign"
+              value={priceTooExpensive}
+              onChange={(e) => setPriceTooExpensive(e.target.value)}
+            />
+            {priceError ? <span style={{ fontSize: "var(--text-sm)", color: "var(--color-danger)" }}>{priceError}</span> : null}
+            {submitError ? <span style={{ fontSize: "var(--text-sm)", color: "var(--color-danger)" }}>{submitError}</span> : null}
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 20, textAlign: "left" }}>
@@ -228,7 +354,6 @@ export function WaitlistSection() {
                 {agesError ? <span style={{ fontSize: "var(--text-xs)", color: "var(--color-danger)" }}>{agesError}</span> : null}
               </div>
             ) : null}
-            {submitError ? <span style={{ fontSize: "var(--text-sm)", color: "var(--color-danger)" }}>{submitError}</span> : null}
           </div>
         )}
       </Modal>
